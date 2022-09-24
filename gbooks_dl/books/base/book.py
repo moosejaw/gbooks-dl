@@ -1,12 +1,12 @@
-from abc import ABC, abstractmethod
 from typing import Type
+from abc import ABC, abstractmethod
 
 from gbooks_dl.books.base.page import Page
 from gbooks_dl.books.base.downloader import Downloader
 
 
 class Book(ABC):
-    downloader: Type[Downloader]  # Override this in concrete classes
+    downloader: Type[Downloader] = Downloader
 
     url: str
     pages: list[Page]
