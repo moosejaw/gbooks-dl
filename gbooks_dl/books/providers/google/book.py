@@ -6,6 +6,7 @@ import urllib.request
 from typing import NamedTuple, Type
 
 from gbooks_dl.types import URL, Headers
+from gbooks_dl.messages import write_max_page, write_current_page
 from gbooks_dl.utils import get_response_encoding, decompress_response_data
 from gbooks_dl.books.base.book import Book
 from gbooks_dl.books.base.page import Page
@@ -79,7 +80,7 @@ class _PageId(NamedTuple):
 
 
 class GoogleBook(Book):
-    downloader = Type[GoogleDownloader]
+    downloader = GoogleDownloader
 
     def __init__(self, url: str):
         super().__init__(url)
@@ -131,9 +132,12 @@ class GoogleBook(Book):
         pages: dict[_PageId, Page] = {}
         current_page = _PageId(kind=1, num=1)
         headers = GoogleRequestHeadersFactory.get_headers(kind=GoogleHeaderKinds.LOOKUP)
+        prev_max_page = None
 
         while True:
-            # Start with PP1 and get every page possible
+            write_current_page(current_page)
+
+            # Start at PP1 and get every page possible
             url = self._get_lookup_url(current_page)
 
             # Send request to the URL and get the response
@@ -151,6 +155,10 @@ class GoogleBook(Book):
 
             pages.update(self._extract_pages_from_json(res_json))
             max_page_encountered = self._get_max_page_from_json(res_json)
+            if max_page_encountered != prev_max_page:
+                write_max_page(max_page_encountered)
+                prev_max_page = max_page_encountered
+
             current_page = self._resolve_next_page(
                 current_page,
                 pages,
