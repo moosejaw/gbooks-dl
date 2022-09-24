@@ -29,7 +29,7 @@ class GoogleRequestHeadersFactory(RequestHeadersFactory):
         return {
             'accept': accept,
             'accept-encoding': 'gzip',
-            'accept-language': '%s,%s;q=0.6'.format(
+            'accept-language': '{},{};q=0.6'.format(
                 re.sub(
                     loc_pat,
                     lambda m: f"{m.group(1)}-{m.group(3)}",
