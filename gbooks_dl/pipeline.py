@@ -1,5 +1,6 @@
 import os
 
+from gbooks_dl.logging import log_out
 from gbooks_dl.parser import get_provider_name
 from gbooks_dl.books.providers.resolver import get_provider_book
 from gbooks_dl.exceptions import (
@@ -18,6 +19,7 @@ def pipeline(url: str, dest: os.PathLike | str):
             "Providers are inferred from the second-level domain of the URL, "
             "e.g. the 'google' part of 'https://www.google.com'."
         )
+    log_out(f'Extracted provider from URL: {provider}\n')
 
     # Now attempt to get a Book instance for the parsed provider
     book = get_provider_book(provider, url)
