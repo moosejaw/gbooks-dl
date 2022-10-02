@@ -1,3 +1,4 @@
+#!/usr/bin/env python3.10
 import os
 import argparse
 
@@ -23,4 +24,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     from gbooks_dl.pipeline import pipeline
-    pipeline(args.url, args.dest)
+    pipeline(args.URL, args.output_folder)
