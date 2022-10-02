@@ -1,8 +1,6 @@
-import locale
 from abc import ABC, abstractmethod
 from typing import TypeVar, Optional
 
-URL = str
 Headers = dict
 HeadersKind = TypeVar('HeadersKind')
 

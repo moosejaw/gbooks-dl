@@ -3,7 +3,7 @@ import locale
 from enum import Enum, auto
 from typing import Optional
 
-from gbooks_dl.types import Headers, HeadersKind, RequestHeadersFactory
+from gbooks_dl.books.base.headers import Headers, HeadersKind, RequestHeadersFactory
 from gbooks_dl.utils import random_user_agent
 
 

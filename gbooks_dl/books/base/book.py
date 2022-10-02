@@ -4,6 +4,8 @@ from abc import ABC, abstractmethod
 from gbooks_dl.books.base.page import Page
 from gbooks_dl.books.base.downloader import Downloader
 
+URL = str
+
 
 class Book(ABC):
     downloader: Type[Downloader] = Downloader

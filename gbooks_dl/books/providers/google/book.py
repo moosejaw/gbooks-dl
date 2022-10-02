@@ -5,10 +5,10 @@ import urllib.parse
 import urllib.request
 from typing import NamedTuple, Type
 
-from gbooks_dl.types import URL, Headers
+from gbooks_dl.books.base.headers import Headers
 from gbooks_dl.messages import write_max_page, write_current_page
 from gbooks_dl.utils import get_response_encoding, decompress_response_data
-from gbooks_dl.books.base.book import Book
+from gbooks_dl.books.base.book import Book, URL
 from gbooks_dl.books.base.page import Page
 from gbooks_dl.books.providers.google.downloader import GoogleDownloader
 from gbooks_dl.books.providers.google.cookie import GoogleCookie
