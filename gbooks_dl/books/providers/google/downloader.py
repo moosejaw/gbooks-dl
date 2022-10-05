@@ -41,4 +41,4 @@ class GoogleDownloader(Downloader):
 
     @staticmethod
     def _write_invalid_img(page, *a, **kw):
-        log_err(f"Page {page.number} not available. ({page.url})")
+        log_err(f"Page {page.number} not available. ({page.url})\n")
