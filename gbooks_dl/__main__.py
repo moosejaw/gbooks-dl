@@ -10,12 +10,12 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument(
     'URL',
-    nargs=1,
+    nargs='?',
     help="A URL containing a preview-able book to be downloaded."
 )
 parser.add_argument(
     '-f', '--output-folder',
-    nargs=1,
+    nargs='?',
     default=os.getcwd(),
     help="The file folder in which the files containing the book previews should be saved."
 )
