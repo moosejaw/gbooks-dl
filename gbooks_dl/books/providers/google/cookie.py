@@ -3,7 +3,7 @@ Many thanks to youtube-dl project for providing a solution to the 'CONSENT' prob
 """
 import re
 import random
-import urllib.parse
+import http.client
 from typing import Optional
 from http.cookies import SimpleCookie, Morsel
 
@@ -41,7 +41,7 @@ class GoogleCookie(SimpleCookie):
         self['CONSENT'].set(
             'CONSENT',
             consent_token,
-            urllib.parse.quote(consent_token)
+            consent_token
         )
 
     def output(self, **kw) -> str:
@@ -50,3 +50,17 @@ class GoogleCookie(SimpleCookie):
     @property
     def consent_id(self) -> str:
         return self._get_consent_id()
+
+
+class GoogleCookieMixin:
+    @staticmethod
+    def extract_cookies_from_response(res: http.client.HTTPResponse) -> Optional[dict[str, str]]:
+        # Set cookie
+        morsels = [
+            v.split(';')[0]
+            for k, v in res.info().items()
+            if k == 'Set-Cookie'
+        ]
+        if morsels:
+            return {'cookie': GoogleCookie('; '.join(morsels)).output()}
+        return None
