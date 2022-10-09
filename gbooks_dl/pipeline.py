@@ -32,5 +32,5 @@ def pipeline(url: str, dest: os.PathLike | str):
     pages = book.get_pages()
 
     # Once we have the pages, download them.
-    downloader = book.downloader(dest)
+    downloader = book.downloader(dest, book.cookie)
     downloader.download_pages(pages)
