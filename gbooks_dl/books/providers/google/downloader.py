@@ -2,7 +2,7 @@ import hashlib
 
 from gbooks_dl.logging import log_err
 from gbooks_dl.books.base.downloader import Downloader
-from gbooks_dl.books.providers.google.cookie import GoogleCookie
+from gbooks_dl.books.providers.google.cookie import GoogleCookieMixin
 from gbooks_dl.books.providers.google.headers import (
     GoogleRequestHeadersFactory,
     GoogleHeaderKinds
@@ -15,7 +15,7 @@ def _get_hash(data: bytes) -> str:
     return hashlib.md5(data).hexdigest()
 
 
-class GoogleDownloader(Downloader):
+class GoogleDownloader(Downloader, GoogleCookieMixin):
     def set_headers(self):
         if self._headers is None:
             self._headers = GoogleRequestHeadersFactory.get_headers(
@@ -25,11 +25,9 @@ class GoogleDownloader(Downloader):
 
     def set_cookie(self, res):
         if self._headers is not None:
-            cookie = dict(res.info()).get('Set-Cookie')
+            cookie = self.extract_cookies_from_response(res)
             if cookie is not None:
-                g_cookie = GoogleCookie(cookie)
-                g_cookie.add_consent()
-                self._headers['Cookie'] = g_cookie.output()
+                self._headers.update(cookie)
 
     @staticmethod
     def _data_is_ok(data: bytes) -> bool:
