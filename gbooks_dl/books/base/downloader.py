@@ -1,13 +1,16 @@
 import os
 import urllib.request
 from pathlib import Path
-from typing import TypeVar, final
+from typing import TypeVar, final, Optional
 from abc import ABC, abstractmethod
 from http.client import HTTPResponse
 
 from gbooks_dl.logging import log_err
 from gbooks_dl.books.base.page import Page
-from gbooks_dl.messages import write_max_dl_pages, write_current_dl_page
+from gbooks_dl.messages import (
+    write_max_dl_pages,
+    write_current_dl_page
+)
 from gbooks_dl.utils import (
     mimetype_map,
     get_response_encoding,
@@ -19,9 +22,10 @@ DownloadHeaders = TypeVar('DownloadHeaders')
 
 
 class Downloader(ABC):
-    def __init__(self, dest: os.PathLike):
+    def __init__(self, dest: os.PathLike, cookie: Optional[tuple[str, str]] = None):
         self._dest = dest
         self._headers = None
+        self._initial_cookie = cookie
 
     @abstractmethod
     def set_headers(self, *a, **kw) -> DownloadHeaders:
@@ -32,6 +36,14 @@ class Downloader(ABC):
         appropriate headers for the given provider.
         """
         ...
+
+    # @abstractmethod
+    # def set_initial_headers(self, *a, **kw):
+    #     ...
+
+    def set_initial_cookie(self) -> None:
+        if self._headers is not None and self._initial_cookie is not None:
+            self._headers.update({self._initial_cookie[0]: self._initial_cookie[1]})
 
     @abstractmethod
     def set_cookie(self, res: HTTPResponse) -> None:
@@ -65,10 +77,12 @@ class Downloader(ABC):
         max_pages = len(pages)
         write_max_dl_pages(max_pages)
 
+        headers = self.set_headers()
+        self.set_initial_cookie()
+
         for idx, page in enumerate(pages):
-            write_current_dl_page(idx, max_pages)
-            headers = self.set_headers()
-            filename = f"{idx}_{str(page.number)}"
+            write_current_dl_page(idx + 1, max_pages)
+            filename = f"{idx + 1}_{str(page.number)}"
 
             req = urllib.request.Request(page.url, headers=headers)
             res = urllib.request.urlopen(req)

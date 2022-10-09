@@ -3,7 +3,7 @@ import json
 import http.client
 import urllib.parse
 import urllib.request
-from typing import NamedTuple, Type
+from typing import NamedTuple, Optional
 
 from gbooks_dl.books.base.headers import Headers
 from gbooks_dl.messages import write_max_page, write_current_page
@@ -11,7 +11,7 @@ from gbooks_dl.utils import get_response_encoding, decompress_response_data
 from gbooks_dl.books.base.book import Book, URL
 from gbooks_dl.books.base.page import Page
 from gbooks_dl.books.providers.google.downloader import GoogleDownloader
-from gbooks_dl.books.providers.google.cookie import GoogleCookie
+from gbooks_dl.books.providers.google.cookie import GoogleCookieMixin
 from gbooks_dl.books.providers.google.headers import (
     GoogleHeaderKinds,
     GoogleRequestHeadersFactory
@@ -79,12 +79,13 @@ class _PageId(NamedTuple):
         return f'{self.kind_str}{self.num}'
 
 
-class GoogleBook(Book):
+class GoogleBook(Book, GoogleCookieMixin):
     downloader = GoogleDownloader
 
     def __init__(self, url: str):
         super().__init__(url)
         self._id = None
+        self._headers = GoogleRequestHeadersFactory.get_headers(kind=GoogleHeaderKinds.LOOKUP)
 
     @property
     def id(self) -> str:
@@ -131,7 +132,6 @@ class GoogleBook(Book):
         """
         pages: dict[_PageId, Page] = {}
         current_page = _PageId(kind=1, num=1)
-        headers = GoogleRequestHeadersFactory.get_headers(kind=GoogleHeaderKinds.LOOKUP)
         prev_max_page = None
 
         while True:
@@ -141,18 +141,15 @@ class GoogleBook(Book):
             url = self._get_lookup_url(current_page)
 
             # Send request to the URL and get the response
-            res = self._get_response(url, headers)
+            res = self._get_response(url, self._headers)
             assert res.status == 200, f'Got a non-200 response: {res.status}'
 
-            # Set response cookie in headers if present
-            cookie_str = dict(res.info()).get("Set-Cookie")
-            if cookie_str is not None:
-                cookie = GoogleCookie(cookie_str)
-                cookie.add_consent()
-                headers.update({'Cookie': cookie.output()})
+            # Set cookie
+            cookie = self.extract_cookies_from_response(res)
+            if cookie is not None:
+                self._headers.update(cookie)
 
             res_json = self._get_json(res)
-
             pages.update(self._extract_pages_from_json(res_json))
             max_page_encountered = self._get_max_page_from_json(res_json)
             if max_page_encountered != prev_max_page:
@@ -254,3 +251,10 @@ class GoogleBook(Book):
     def _get_max_page_from_json(res: dict):
         res_pages = res.get('page')
         return max([_PageId.from_id_str(r['pid']) for r in res_pages])
+
+    @property
+    def cookie(self) -> Optional[tuple[str, str]]:
+        cookie = self._headers.get('cookie')
+        if cookie is not None:
+            return 'cookie', cookie
+        return None

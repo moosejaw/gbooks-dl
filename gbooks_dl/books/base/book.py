@@ -1,4 +1,4 @@
-from typing import Type
+from typing import Type, Optional
 from abc import ABC, abstractmethod
 
 from gbooks_dl.books.base.page import Page
@@ -18,4 +18,9 @@ class Book(ABC):
 
     @abstractmethod
     def get_pages(self) -> list[Page]:
+        ...
+
+    @property
+    @abstractmethod
+    def cookie(self) -> Optional[tuple[str, str]]:
         ...
