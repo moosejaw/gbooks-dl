@@ -132,6 +132,7 @@ class GoogleBook(Book, GoogleCookieMixin):
         """
         pages: dict[_PageId, Page] = {}
         current_page = _PageId(kind=1, num=1)
+        max_page = _PageId(kind=1, num=1)
         prev_max_page = None
 
         while True:
@@ -151,10 +152,12 @@ class GoogleBook(Book, GoogleCookieMixin):
 
             res_json = self._get_json(res)
             pages.update(self._extract_pages_from_json(res_json))
-            max_page_encountered = self._get_max_page_from_json(res_json)
-            if max_page_encountered != prev_max_page:
-                write_max_page(max_page_encountered)
-                prev_max_page = max_page_encountered
+
+            max_from_json = self._get_max_page_from_json(res_json)
+            if max_page < max_from_json and max_page != prev_max_page:
+                prev_max_page = max_page
+                max_page = max_from_json
+                write_max_page(max_page)
 
             current_page = self._resolve_next_page(
                 current_page,
@@ -162,7 +165,7 @@ class GoogleBook(Book, GoogleCookieMixin):
                 res_json
             )
 
-            if max_page_encountered == current_page:
+            if max_page == current_page:
                 break
 
         return sorted(pages.values(), key=lambda p: p.number)
